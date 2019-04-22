@@ -1,0 +1,53 @@
+version: '3.3'
+services:
+  db:
+    image: postgres:11.2
+    restart: always
+    container_name: tbk_db_1
+    hostname: db
+    volumes:
+      - /var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD
+    deploy:
+      resources:
+        limits:
+          memory: 4g
+    networks:
+      - tbknet
+
+  apache:
+    image: thebigknow/apache
+    restart: always
+    container_name: tbk_web_1
+    hostname: apache01
+    environment:
+      TBK_DOMAIN: dev.thebigknow.com
+      RAILS_APP_HOST: "${DOCKER_INTERNAL:-host.docker.internal}"
+    ports:
+      - target: 80
+        published: 80
+        protocol: tcp
+        mode: host
+      - target: 443
+        published: 443
+        protocol: tcp
+        mode: host
+    networks:
+      - tbknet
+
+  redis:
+    image: redis
+    restart: always
+    container_name: tbk_redis_1
+    hostname: redis01
+    ports:
+      - "6379:6379"
+    networks:
+      - tbknet
+
+networks:
+  tbknet:
+    driver: bridge

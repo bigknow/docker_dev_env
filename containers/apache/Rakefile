@@ -1,0 +1,43 @@
+task default: :build
+
+IMAGE="thebigknow/apache"
+ECRBASE="878670881129.dkr.ecr.us-east-1.amazonaws.com"
+
+desc "Build the image from the Dockerfile"
+task :build, [:docker_tag] do |t, args|
+  docker_tag = args[:docker_tag] || 'latest'
+  sh "docker build --rm=true -t #{IMAGE}:#{docker_tag} ."
+end
+
+desc "Run the image"
+task :run do
+  sh "docker run --rm -it --name test-tbk-apache #{IMAGE} bash -l"
+end
+
+desc "Push image to Docker Hub"
+task :push, [:docker_tag] do |t, args|
+  docker_tag = args[:docker_tag] || 'latest'
+  sh "docker push #{IMAGE}:#{docker_tag}"
+end
+
+desc "Clean up containers and images"
+task :clean do
+  sh "docker rm $(docker ps -aq)"
+  sh "docker rmi #{IMAGE}"
+end
+
+namespace :aws do
+  desc "Push image to AWC ECR"
+  task :push, [:docker_tag] do |t, args|
+    docker_tag = args[:docker_tag] || 'latest'
+    image_tag = "#{IMAGE}:#{docker_tag}"
+    sh "docker push #{ECRBASE}/#{image_tag}"
+  end
+
+  desc "Tag image for AWS ECR"
+  task :tag, [:docker_tag] do |t, args|
+    docker_tag = args[:docker_tag] || 'latest'
+    image_tag = "#{IMAGE}:#{docker_tag}"
+    sh "docker tag #{image_tag} #{ECRBASE}/#{image_tag}"
+  end
+end

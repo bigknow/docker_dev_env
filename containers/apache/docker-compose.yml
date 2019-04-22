@@ -1,0 +1,18 @@
+version: '3.3'
+services:
+
+  web:
+    image: thebigknow/apache:latest
+    container_name: web
+    hostname: web01
+    environment:
+      TBK_DOMAIN: dev.thebigknow.com
+      RAILS_APP_HOST: app
+    ports:
+      - "80:80"
+      - "443:443"
+
+networks:
+  default:
+    external:
+      name: docker_tbknet
